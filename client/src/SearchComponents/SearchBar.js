@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 export const SearchBar = ({ setResults, inputValue, selectedRecipe }) => {
   const [input, setInput] = useState("");
 
-  const API_BASE_URL = "http://localhost:3000";
+  // const API_BASE_URL = "http://localhost:3000";
 
   const fetchData = async (value) => {
       try {
