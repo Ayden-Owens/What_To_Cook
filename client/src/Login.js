@@ -56,7 +56,7 @@ const Login = () => {
 
     const handleLogin = async () => {
 
-        const API_BASE_URL = 'https://whattocookapp-ed9fe9a2a3d4.herokuapp.com'
+        const API = 'https://whattocookapp-ed9fe9a2a3d4.herokuapp.com'
         // const API = "http://localhost:3000"
     
 
