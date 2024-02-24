@@ -166,9 +166,8 @@ const Profile = ( { onRecipeSelect } ) => {
     try {
       const ingredientName = selectedIngredient;
 
-      console.log("Quant:"+ingredientQuantity)
       if (isNaN(ingredientQuantity) || ingredientQuantity === "") {
-        console.log("not a number")
+        setShowIngredientModal(false);
         setQuantityError("Not a valid quantity. Please enter a number.");
         return;
       }
@@ -193,7 +192,6 @@ const Profile = ( { onRecipeSelect } ) => {
       setIngredientQuantity("");
       setIngredientOptions("");
       // closing Modal
-      console.log("Adding ingredient:", selectedIngredient);
       setShowIngredientModal(false);
     }
     catch (error) {
@@ -434,7 +432,6 @@ const Profile = ( { onRecipeSelect } ) => {
                 onChange={(e) => setIngredientName(e.target.value)}
                 placeholder="Enter Ingredient Name"
               />       
-              {quantityError && <div className="error-message">{quantityError}</div>}   
               <input
                 className="add-items-input"
                 type="text"
@@ -455,6 +452,7 @@ const Profile = ( { onRecipeSelect } ) => {
                 {error}
               </div>
             }
+            {quantityError && <div className="error-message">{quantityError}</div>} 
             {ingredientOptions.length > 0 && (
             <ul>
               {ingredientOptions.map((option, index) => (
