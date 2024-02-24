@@ -28,9 +28,9 @@ function App() {
     <Router>
       <div>
         <Routes>
-          <Route path="/" Component={Login} />
           <Route path="/register" Component={Register} />
           <Route path="/home" Component={Home} />
+          <Route path="/" Component={Login} />
           <Route path="/RecipeGenerator"
             element={
               <RecipeGenerator 
