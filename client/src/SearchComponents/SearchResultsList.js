@@ -41,7 +41,7 @@ export const SearchResultsList = ({ results, inputValue, onIngredientSelect }) =
   const isBookmark = async (recipeID) => {
     try {
       const response = await Axios.post(
-        "http://localhost:3000/users/isBookmarked",
+        "https://whattocookapp-ed9fe9a2a3d4.herokuapp.com/users/isBookmarked",
         {
           data: { recipeID },
         },
@@ -65,7 +65,7 @@ export const SearchResultsList = ({ results, inputValue, onIngredientSelect }) =
 
       if (!isCurrentlyBookmarked) {
         await Axios.post(
-          "http://localhost:3000/users/bookmark_recipe",
+          "https://whattocookapp-ed9fe9a2a3d4.herokuapp.com/users/bookmark_recipe",
           {
             data: { recipeID },
           },
@@ -79,7 +79,7 @@ export const SearchResultsList = ({ results, inputValue, onIngredientSelect }) =
         console.log("Recipe bookmarked successfully!");
       } else {
         await Axios.post(
-          "http://localhost:3000/users/unbookmark_recipe",
+          "https://whattocookapp-ed9fe9a2a3d4.herokuapp.com/users/unbookmark_recipe",
           {
             data: { recipeID },
           },
@@ -140,7 +140,7 @@ export const SearchResultsList = ({ results, inputValue, onIngredientSelect }) =
                       <React.Fragment key={idx}>
                         {idx > 0  && ", "}
                         {<Link
-                        to="http://localhost:3001/PriceComparer"
+                        to="/PriceComparer"
                         onClick={() => handleIngredientClick(ingredient)}
                       >
                         {ingredient}

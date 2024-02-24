@@ -10,7 +10,7 @@ export const SearchBar = ({ setResults, inputValue, selectedRecipe }) => {
   const fetchData = async (value) => {
       try {
         const response = await Axios.get(
-          "http://localhost:3000/recipe/allergy",
+          "https://whattocookapp-ed9fe9a2a3d4.herokuapp.com/recipe/allergy",
           {
             params: { value },
             withCredentials: true,
