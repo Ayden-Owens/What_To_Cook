@@ -34,7 +34,8 @@ const Profile = ( { onRecipeSelect } ) => {
 
   const [error, setError] = useState(null);
 
-  const API = "http://localhost:3000"
+  const API = 'https://whattocookapp-ed9fe9a2a3d4.herokuapp.com'
+  // const API = "http://localhost:3000"
 
   const handleRecipeToSearchBar = (recipeTitle) => {
     if (onRecipeSelect) {
@@ -109,7 +110,7 @@ const Profile = ( { onRecipeSelect } ) => {
   // Fridge Section
   const fetchIngredientOptions = async () => {
     try {
-      const response = await Axios.get(`http://localhost:3000/users/ingredient_options?query=${ingredientName}`, 
+      const response = await Axios.get(`https://whattocookapp-ed9fe9a2a3d4.herokuapp.com/users/ingredient_options?query=${ingredientName}`, 
       {
         withCredentials: true,
         headers: {
@@ -307,7 +308,7 @@ const Profile = ( { onRecipeSelect } ) => {
               {profilePictureURL ? ( 
                 <img 
                   className="profile-pic"
-                  src={`http://localhost:3000/uploads/${profilePictureURL}`} 
+                  src={`https://whattocookapp-ed9fe9a2a3d4.herokuapp.com/uploads/${profilePictureURL}`} 
                   alt="Profile"
                 />
               ) : (
@@ -367,7 +368,7 @@ const Profile = ( { onRecipeSelect } ) => {
                 {/* Display the picture */}
                 <img 
                   className="recipe-img" 
-                  src={`http://localhost:3000/recipe_images/${recipeOfTheWeek.image}`} 
+                  src={`https://whattocookapp-ed9fe9a2a3d4.herokuapp.com/recipe_images/${recipeOfTheWeek.image}`} 
                   alt="Recipe" 
                 />
                 {/* <p>{recipeOfTheWeek.title}</p> */}
