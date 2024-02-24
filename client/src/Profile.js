@@ -166,7 +166,9 @@ const Profile = ( { onRecipeSelect } ) => {
     try {
       const ingredientName = selectedIngredient;
 
-      if (isNaN(ingredientQuantity) || ingredientQuantity.trim() === "") {
+      console.log("Quant:"+ingredientQuantity)
+      if (isNaN(ingredientQuantity) || ingredientQuantity === "") {
+        console.log("not a number")
         setQuantityError("Not a valid quantity. Please enter a number.");
         return;
       }
