@@ -32,7 +32,9 @@ const Profile = ( { onRecipeSelect } ) => {
 
   const navigate = useNavigate()
 
+  //Error Vars
   const [error, setError] = useState(null);
+  const [quantityError, setQuantityError] = useState("");
 
   const API = 'https://whattocookapp-ed9fe9a2a3d4.herokuapp.com'
   // const API = "http://localhost:3000"
@@ -163,6 +165,11 @@ const Profile = ( { onRecipeSelect } ) => {
   const handleAddIngredient = async () => {
     try {
       const ingredientName = selectedIngredient;
+
+      if (isNaN(ingredientQuantity) || ingredientQuantity.trim() === "") {
+        setQuantityError("Not a valid quantity. Please enter a number.");
+        return;
+      }
 
       const response = await Axios.post(
         API+"/users/profile_ingredient_list",
@@ -424,12 +431,16 @@ const Profile = ( { onRecipeSelect } ) => {
                 value={ingredientName}
                 onChange={(e) => setIngredientName(e.target.value)}
                 placeholder="Enter Ingredient Name"
-              />          
+              />       
+              {quantityError && <div className="error-message">{quantityError}</div>}   
               <input
                 className="add-items-input"
                 type="text"
                 value={ingredientQuantity}
-                onChange={(e) => setIngredientQuantity(e.target.value)}
+                onChange={(e) => {
+                  setIngredientQuantity(e.target.value)
+                  setQuantityError("");
+                }}
                 placeholder="Quantity"
               />
             </form>
