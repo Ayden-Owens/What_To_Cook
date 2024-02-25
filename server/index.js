@@ -2,7 +2,6 @@ const express = require("express")
 const cors = require("cors")
 const session = require("express-session")
 const db = require('./models');
-// const sessionStore = require('./pool.js')
 const dotenv = require('dotenv')
 const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
