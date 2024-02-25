@@ -29,4 +29,4 @@ const sessionStore = new MySQLStore({
 
 }, pool);
 
-module.exports = { sessionStore };
+module.exports =  sessionStore;
