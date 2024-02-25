@@ -65,7 +65,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// Login
+// Login and pool.js
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -124,7 +124,7 @@ router.post("/logout", authenticate, async (req, res) => {
   }
 });
 
-// Gets User's data for profile page
+// Gets User's data for profile page and pool.js
 router.get("/profile", authenticate, async (req, res) => {
   try {
     pool.getConnection((err, connection) => {
@@ -164,39 +164,36 @@ router.get("/profile", authenticate, async (req, res) => {
   }
 });
 
-// Gets the User's Ingredient Options
+// Gets the User's Ingredient Options and pool.js
 router.get("/ingredient_options", async (req, res) => {
   try {
-    const { query } = req.query
-    console.log("query"+query)
+    pool.getConnection((err, connection) => {
+      if (err) {
+        console.error("Error getting connection from pool:", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
 
-    // Query the database for ingredients that match the provided query
-    const matchingIngredients = await Ingredient.findAll({
-      where: {
-        name: {
-          [Sequelize.Op.like]: `%${query}%`,
-        },
-      },
-      attributes: ["name"], 
+      const { query } = req.query;
+
+      // Query the database for ingredients that match the provided query
+      connection.query('SELECT name FROM Ingredients WHERE name LIKE ?', [`%${query}%`], (err, results) => {
+        connection.release(); // Release the connection back to the pool
+
+        if (err) {
+          console.error("Error executing query:", err);
+          return res.status(500).json({ error: "Internal Server Error" });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({ error: "Ingredient not found in our recipes." });
+        }
+
+        // Extract the names of matching ingredients from the query result
+        const ingredientOptions = results.map((ingredient) => ingredient.name);
+
+        res.status(200).json({ ingredientOptions });
+      });
     });
-
-
-    
-    if (matchingIngredients == 0){
-      res.status(404).json({ error: "Ingredient not found in our recipes." });
- 
-    }
-    else if (query == ""){
-      
-      res.status(404).json({ error: "input is empty" })
-    }
-    else {
-      // Extract the names of matching ingredients from the query result
-      const ingredientOptions = matchingIngredients.map((ingredient) => ingredient.name);
-      
-      res.status(200).json({ ingredientOptions });
-    }
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
