@@ -70,37 +70,44 @@ router.post("/login", (req, res) => {
   const { username, password } = req.body;
 
   pool.getConnection((err, conn) => {
-      if (err) {
-          res.status(500).json({ error: "Error occurred while connecting to the database" });
-          return;
+    if (err) {
+      console.error("Error occurred while connecting to the database:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    const query = 'SELECT * FROM users WHERE username = ?';
+
+    conn.query(query, [username], async (error, results, fields) => {
+      conn.release(); // Release the connection back to the pool
+
+      if (error) {
+        console.error("Error executing query:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
       }
 
-      const query = 'SELECT * FROM users WHERE username = ?';
+      try {
+        if (results.length > 0) {
+          const foundUser = results[0];
+          const passwordMatch = await bcrypt.compare(password, foundUser.password);
 
-      conn.query(query, [username], async (error, results, fields) => {
-          conn.release(); // Release the connection back to the pool
-
-          if (error) {
-              res.status(500).json({ error: "Error executing query" });
-              return;
-          }
-
-          if (results.length > 0) {
-              const foundUser = results[0];
-              const passwordMatch = await bcrypt.compare(password, foundUser.password);
-
-              if (passwordMatch) {
-                  const token = jwt.sign({ userId: foundUser.id }, "skey", {
-                      expiresIn: "5h",
-                  });
-                  res.json({ message: "Login successful", token });
-              } else {
-                  res.status(401).json({ error: "Invalid credentials" });
-              }
+          if (passwordMatch) {
+            const token = jwt.sign({ userId: foundUser.id }, "skey", {
+              expiresIn: "5h",
+            });
+            res.json({ message: "Login successful", token });
           } else {
-              res.status(401).json({ error: "Invalid credentials" });
+            res.status(401).json({ error: "Invalid credentials" });
           }
-      });
+        } else {
+          res.status(401).json({ error: "Invalid credentials" });
+        }
+      } catch (catchError) {
+        console.error("Error in processing login:", catchError);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+    });
   });
 });
 
