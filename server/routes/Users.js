@@ -202,46 +202,55 @@ router.get("/ingredient_options", async (req, res) => {
 
 router.post("/profile_ingredient_list", authenticate, async (req, res) => {
   try {
-    const { name, quantity } = req.body;
-
-    console.log('req.body' + name + quantity)
-
-    // check if user's ingredient name is in the Ingredient table
-    const ingredient = await Ingredient.findOne({
-      where: {
-        name: {
-          [Sequelize.Op.like]: `%${name}%`,
-        },
-      },
-    });
-
-    // if true
-    if (ingredient) {
-      console.log("Ingredient:", ingredient.name);
-          // Check if the ingredient already exists in the user's profile
-      const [userProfile, created] = await FridgeIngredient.findOrCreate({
-        where: {
-          user_id: req.userId,
-          ingredient_id: ingredient.id,
-        },
-        defaults: {
-          quantity: quantity,
-        },
-      });
-      // handle case if the user profile already has the ingrendient
-      if (!created) {
-        //console.log('User already has this ingredient!')
-        await userProfile.update({ quantity: quantity });
+    pool.getConnection((err, connection) => {
+      if (err) {
+        console.error("Error getting connection from pool:", err);
+        return res.status(500).json({ error: "Internal Server Error" });
       }
 
-      res.json({ message: "Fridge updated successfully" });
-    } 
-    else {
-      console.error("Ingredient not found for: ", name);
-      res.status(404).json({ error: "Ingredient not found." });
-    }
-  }
-    catch (error) {
+      const { name, quantity } = req.body;
+
+      console.log('req.body' + name + quantity);
+
+      // check if user's ingredient name is in the Ingredient table
+      connection.query('SELECT * FROM Ingredient WHERE name LIKE ?', [`%${name}%`], async (err, results) => {
+        if (err) {
+          connection.release(); // Release the connection back to the pool
+          console.error("Error executing query:", err);
+          return res.status(500).json({ error: "Internal Server Error" });
+        }
+
+        if (results.length > 0) {
+          const ingredient = results[0];
+          console.log("Ingredient:", ingredient.name);
+
+          // Check if the ingredient already exists in the user's profile
+          const [userProfile, created] = await FridgeIngredient.findOrCreate({
+            where: {
+              user_id: req.userId,
+              ingredient_id: ingredient.id,
+            },
+            defaults: {
+              quantity: quantity,
+            },
+          });
+
+          // handle case if the user profile already has the ingredient
+          if (!created) {
+            await userProfile.update({ quantity: quantity });
+          }
+
+          connection.release(); // Release the connection back to the pool
+          res.json({ message: "Fridge updated successfully" });
+        } else {
+          connection.release(); // Release the connection back to the pool
+          console.error("Ingredient not found for: ", name);
+          res.status(404).json({ error: "Ingredient not found." });
+        }
+      });
+    });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
@@ -519,50 +528,30 @@ router.delete("/unbookmark", authenticate, async (req, res) => {
   }
 });
 
-router.get("/favorite_recipe", authenticate, (req, res) => {
-  pool.getConnection((err, conn) => {
-    if (err) {
-      console.error("Error occurred while connecting to the database:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-      return;
-    }
-
+router.get("/favorite_recipe", authenticate, async (req, res) => {
+  try{
     const userId = req.userId;
-    const query = {
+    const favRecipes = await FavRecipes.findAll({
       where: { userId },
       include: [{ model: Recipe, attributes: ["id", "title", "image"] }],
-    };
-
-    conn.query(query, async (error, favRecipes) => {
-      conn.release(); // Release the connection back to the pool
-
-      if (error) {
-        console.error("Error executing query:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-        return;
-      }
-
-      try {
-        const favoriteRecipes = favRecipes.map((favRecipe) => {
-          const { id, title, image } = favRecipe.Recipe;
-          return {
-            id,
-            title,
-            image: image
-              ? `https://whattocookapp-ed9fe9a2a3d4.herokuapp.com/recipe_images/${image}`
-              : null,
-          };
-        });
-
-        res.status(200).json({ favoriteRecipes });
-      } catch (catchError) {
-        console.error("Error in processing favorite recipes:", catchError);
-        res.status(500).json({ error: "Internal Server Error" });
-      }
     });
-  });
-});
 
+    const favoriteRecipes = favRecipes.map((favRecipe) => {
+      const { id, title, image } = favRecipe.Recipe;
+      return {
+        id,
+        title,
+        image: image ? `https://whattocookapp-ed9fe9a2a3d4.herokuapp.com/recipe_images/${image}` : null,
+      };
+    });
+
+    res.status(200).json({ favoriteRecipes });
+  }
+  catch(error){
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+})
 
 router.post("/isBookmarked", authenticate, async (req, res) => {
   try {
