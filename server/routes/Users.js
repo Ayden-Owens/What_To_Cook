@@ -446,12 +446,43 @@ router.get("/healthlabels", async (req, res) => {
   }
 });
 
-router.post("/upload_profile_picture", upload.single("profilePicture"), authenticate, 
-  async (req, res) => {
+// router.post("/upload_profile_picture", upload.single("profilePicture"), authenticate, 
+//   async (req, res) => {
+//     try {
+//       if (!req.file) {
+//         return res.status(400).json({ error: "No profile picture uploaded" });
+//       }   
+
+//       // Save the uploaded file
+//       const fileName = `${req.userId}_profile_picture`;
+//       const filePath = path.join(__dirname, "../uploads", fileName);
+//       fs.writeFileSync(filePath, req.file.buffer);
+
+//       // Update user's profile with the file path
+//       await Users.update({ profilePicture: fileName }, { where: { id: req.userId } });
+
+//       res.json({ message: "Profile Picture uploaded successfully", filePath: fileName });  
+//     } 
+//     catch (error) {
+//       console.error(error);
+//       res.status(500).json({ error: "Internal Server Error" });
+//     }
+//   }
+// );
+
+router.post("/upload_profile_picture", upload.single("profilePicture"), authenticate, (req, res) => {
+  pool.getConnection((err, conn) => {
+    if (err) {
+      console.error("Error occurred while connecting to the database:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
     try {
       if (!req.file) {
+        conn.release();
         return res.status(400).json({ error: "No profile picture uploaded" });
-      }   
+      }
 
       // Save the uploaded file
       const fileName = `${req.userId}_profile_picture`;
@@ -459,16 +490,31 @@ router.post("/upload_profile_picture", upload.single("profilePicture"), authenti
       fs.writeFileSync(filePath, req.file.buffer);
 
       // Update user's profile with the file path
-      await Users.update({ profilePicture: fileName }, { where: { id: req.userId } });
+      const updateQuery = {
+        profilePicture: fileName
+      };
 
-      res.json({ message: "Profile Picture uploaded successfully", filePath: fileName });  
-    } 
-    catch (error) {
+      const whereClause = {
+        id: req.userId
+      };
+
+      conn.query("UPDATE Users SET ? WHERE ?", [updateQuery, whereClause], async (error) => {
+        conn.release(); // Release the connection back to the pool
+
+        if (error) {
+          console.error("Error updating user's profile picture:", error);
+          return res.status(500).json({ error: "Internal Server Error" });
+        }
+
+        res.json({ message: "Profile Picture uploaded successfully", filePath: fileName });
+      });
+    } catch (error) {
       console.error(error);
+      conn.release(); // Release the connection back to the pool
       res.status(500).json({ error: "Internal Server Error" });
     }
-  }
-);
+  });
+});
 
 router.post("/bookmark_recipe", authenticate, async (req, res) => {
   try{
