@@ -76,7 +76,7 @@ router.post("/login", (req, res) => {
       return;
     }
 
-    const query = 'SELECT * FROM users WHERE username = ?';
+    const query = 'SELECT * FROM Users WHERE username = ?';
 
     conn.query(query, [username], async (error, results, fields) => {
       conn.release(); // Release the connection back to the pool
