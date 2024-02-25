@@ -248,7 +248,7 @@ router.post("/profile_ingredient_list", authenticate, async (req, res) => {
 
 router.get("/saved_ingredients", authenticate, async (req, res) => {
   try {
-    console.log("HIT SAVED INGREDIENTS")
+    
     const userProfile = await FridgeIngredient.findAll({
       where: { user_id: req.userId },
       include: [
@@ -336,11 +336,11 @@ router.delete("/delete_ingredient", authenticate, async (req, res) => {
 
 router.post("/dietary_restrictions", authenticate, async (req, res) => {
   try {
-    console.log("hit diet route");
+    
     const userId = req.userId;
-    console.log("userId: => ", userId);
+    
     const { selectedRestrictions } = req.body;
-    console.log("selectedRestrictions: => ", selectedRestrictions);
+    
 
     const healthLabelIds = Array.isArray(selectedRestrictions)
       ? selectedRestrictions
@@ -519,30 +519,50 @@ router.delete("/unbookmark", authenticate, async (req, res) => {
   }
 });
 
-router.get("/favorite_recipe", authenticate, async (req, res) => {
-  try{
+router.get("/favorite_recipe", authenticate, (req, res) => {
+  pool.getConnection((err, conn) => {
+    if (err) {
+      console.error("Error occurred while connecting to the database:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
     const userId = req.userId;
-    const favRecipes = await FavRecipes.findAll({
+    const query = {
       where: { userId },
       include: [{ model: Recipe, attributes: ["id", "title", "image"] }],
-    });
+    };
 
-    const favoriteRecipes = favRecipes.map((favRecipe) => {
-      const { id, title, image } = favRecipe.Recipe;
-      return {
-        id,
-        title,
-        image: image ? `http://localhost:3000/recipe_images/${image}` : null,
-      };
-    });
+    conn.query(query, async (error, favRecipes) => {
+      conn.release(); // Release the connection back to the pool
 
-    res.status(200).json({ favoriteRecipes });
-  }
-  catch(error){
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-})
+      if (error) {
+        console.error("Error executing query:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+      }
+
+      try {
+        const favoriteRecipes = favRecipes.map((favRecipe) => {
+          const { id, title, image } = favRecipe.Recipe;
+          return {
+            id,
+            title,
+            image: image
+              ? `https://whattocookapp-ed9fe9a2a3d4.herokuapp.com/recipe_images/${image}`
+              : null,
+          };
+        });
+
+        res.status(200).json({ favoriteRecipes });
+      } catch (catchError) {
+        console.error("Error in processing favorite recipes:", catchError);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+    });
+  });
+});
+
 
 router.post("/isBookmarked", authenticate, async (req, res) => {
   try {
