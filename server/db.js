@@ -1,4 +1,6 @@
 const mysql = require('mysql2');
+const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
 
 const pool = mysql.createPool({
     host: 's554ongw9quh1xjs.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
@@ -10,4 +12,21 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-module.exports = pool.promise();
+const sessionStore = new MySQLStore({
+    createDatabaseTable: true,
+    schema: {
+        tableName: 'sessions',
+    },
+    expiration: 86400000, // 1 day in milliseconds
+    clearExpired: true,
+    checkExpirationInterval: 900000, // 15 minutes
+    connectionLimit: 10,
+    columnNames: {
+        session_id: 'session_id',
+        expires: 'expires',
+        data: 'data'
+    }
+
+}, pool);
+
+module.exports = { sessionStore };
