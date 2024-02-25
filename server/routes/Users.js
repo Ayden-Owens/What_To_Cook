@@ -112,46 +112,16 @@ router.post("/login", (req, res) => {
 });
 
 // Logout
-// router.post("/logout", authenticate, async (req, res) => {
-//   try {
-//     await req.session.destroy();
-//     res.clearCookie("connect.sid");
-//     res.json({ message: "Logout successful" });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
-
-// Logout with pool
-router.post("/logout", authenticate, (req, res) => {
-  pool.getConnection((err, conn) => {
-    if (err) {
-      console.error("Error occurred while connecting to the database:", err);
-      res.status(500).json({ error: "Internal Server Error" });
-      return;
-    }
-
-    try {
-      conn.query("DELETE FROM sessions WHERE session_id = ?", [req.sessionID], async (error) => {
-        conn.release(); // Release the connection back to the pool
-
-        if (error) {
-          console.error("Error destroying session:", error);
-          return res.status(500).json({ error: "Internal Server Error" });
-        }
-
-        res.clearCookie("connect.sid");
-        res.json({ message: "Logout successful" });
-      });
-    } catch (error) {
-      console.error(error);
-      conn.release(); // Release the connection back to the pool
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  });
+router.post("/logout", authenticate, async (req, res) => {
+  try {
+    await req.session.destroy();
+    res.clearCookie("connect.sid");
+    res.json({ message: "Logout successful" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
-
 
 // Gets User's data for profile page and pool.js
 router.get("/profile", authenticate, async (req, res) => {
