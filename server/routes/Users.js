@@ -111,7 +111,6 @@ router.post("/login", (req, res) => {
   });
 });
 
-
 // Logout
 router.post("/logout", authenticate, async (req, res) => {
   try {
