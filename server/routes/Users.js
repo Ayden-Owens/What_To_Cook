@@ -17,6 +17,7 @@ const authenticate = require("../middlewares/authenticate");
 const bcrypt = require("bcryptjs");
 const saltRounds = 10;
 const fs = require("fs");
+const pool = require('../pool')
 
 const multer = require("multer");
 const { error } = require("console");
@@ -65,31 +66,44 @@ router.post("/register", async (req, res) => {
 });
 
 // Login
-router.post("/login", async (req, res) => {
+router.post("/login", (req, res) => {
   const { username, password } = req.body;
-  try {
-    const foundUser = await Users.findOne({
-      where: { username },
-    });
-    
-    if (foundUser) {
-      const passwordMatch = await bcrypt.compare(password, foundUser.password);
-      if (passwordMatch) {
-        const token = jwt.sign({ userId: foundUser.id }, "skey", {
-          expiresIn: "5h",
-        });
-        res.json({ message: "Login successful", token });
-      } else {
-        res.status(401).json({ error: "Invalid credentials" });
+
+  pool.getConnection((err, conn) => {
+      if (err) {
+          res.status(500).json({ error: "Error occurred while connecting to the database" });
+          return;
       }
-    } else {
-      res.status(401).json({ error: "Invalid credentials" });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
+
+      const query = 'SELECT * FROM users WHERE username = ?';
+
+      conn.query(query, [username], async (error, results, fields) => {
+          conn.release(); // Release the connection back to the pool
+
+          if (error) {
+              res.status(500).json({ error: "Error executing query" });
+              return;
+          }
+
+          if (results.length > 0) {
+              const foundUser = results[0];
+              const passwordMatch = await bcrypt.compare(password, foundUser.password);
+
+              if (passwordMatch) {
+                  const token = jwt.sign({ userId: foundUser.id }, "skey", {
+                      expiresIn: "5h",
+                  });
+                  res.json({ message: "Login successful", token });
+              } else {
+                  res.status(401).json({ error: "Invalid credentials" });
+              }
+          } else {
+              res.status(401).json({ error: "Invalid credentials" });
+          }
+      });
+  });
 });
+
 
 // Logout
 router.post("/logout", authenticate, async (req, res) => {
@@ -106,23 +120,37 @@ router.post("/logout", authenticate, async (req, res) => {
 // Gets User's data for profile page
 router.get("/profile", authenticate, async (req, res) => {
   try {
-    //Check if the user exists
-    const user = await Users.findOne({
-      where: { id: req.userId },
-      attributes: ["username", "email", "profilePicture"],
+    pool.getConnection((err, connection) => {
+      if (err) {
+        console.error("Error getting connection from pool:", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      const userId = req.userId;
+
+      // Check if the user exists
+      connection.query('SELECT username, email, profilePicture FROM Users WHERE id = ?', [userId], (err, results) => {
+        connection.release(); // Release the connection back to the pool
+
+        if (err) {
+          console.error("Error executing query:", err);
+          return res.status(500).json({ error: "Internal Server Error" });
+        }
+
+        if (results.length === 0) {
+          return res.status(404).json({ error: "User not found" });
+        }
+
+        const user = results[0];
+        const responseData = {
+          username: user.username,
+          email: user.email,
+          profilePicture: user.profilePicture,
+        };
+
+        res.json(responseData);
+      });
     });
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const responseData = {
-      username: user.username,
-      email: user.email,
-      profilePicture: user.profilePicture,
-    };
-
-    res.json(responseData);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });

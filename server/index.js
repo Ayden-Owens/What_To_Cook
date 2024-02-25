@@ -1,8 +1,8 @@
 const express = require("express")
 const cors = require("cors")
 const session = require("express-session")
-const models = require('./models');
-const sessionStore = require('./db')
+const db = require('./models');
+// const sessionStore = require('./pool.js')
 const dotenv = require('dotenv')
 const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
@@ -41,7 +41,6 @@ app.use(session({
         maxAge: 24 * 60 * 60,  // 1 day
         httpOnly: true, //reducing the risk of cross-site scripting (XSS) attacks.
     },
-    store: sessionStore,
 }))
 
 // Routers
