@@ -140,7 +140,8 @@ router.get("/profile", authenticate, async (req, res) => {
 
         if (err) {
           console.error("Error executing query:", err);
-          return res.status(500).json({ error: "Internal Server Error" });
+          return 
+          res.status(500).json({ error: "Internal Server Error" });
         }
 
         if (results.length === 0) {
