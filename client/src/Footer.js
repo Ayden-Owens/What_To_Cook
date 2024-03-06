@@ -42,7 +42,7 @@ function Footer() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    const API = "https://whattocookapp-ed9fe9a2a3d4.herokuapp.com"
+    const API = "http://localhost:3000"
     try {
       await Axios.post(
           `${API}/users/logout`,

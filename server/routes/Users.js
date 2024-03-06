@@ -589,7 +589,7 @@ router.get("/favorite_recipe", authenticate, async (req, res) => {
       return {
         id,
         title,
-        image: image ? `https://whattocookapp-ed9fe9a2a3d4.herokuapp.com/recipe_images/${image}` : null,
+        image: image ? `http://localhost:3000/recipe_images/${image}` : null,
       };
     });
 
