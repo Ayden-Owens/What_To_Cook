@@ -24,7 +24,7 @@ app.use('/ingredient_images', express.static(path.join(__dirname, 'ingredient_im
 
 app.use(express.json())
 app.use(cors({
-    origin: ["http://localhost:3001"],
+    origin: ["http://localhost:3001"],// replace with actual url of production frontend 
     methods: ["GET", "POST", "DELETE"],
     credentials: true
 }))
