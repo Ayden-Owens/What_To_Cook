@@ -13,10 +13,6 @@ services:
         type: rewrite
         destination: /build/index.html
         
-      - path: /public
-        type: rewrite
-        destination: /public/index.html
-
   - name: backend-service
     github:
       repo: github.com/Ayden-Owens/What_To_Cook
