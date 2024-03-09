@@ -1,25 +1,10 @@
-name: WhatToCook
-region: nyc
-
+name: whattocook
 services:
-  - name: frontend-service
-    github:
-      repo: https://github.com/Ayden-Owens/What_To_Cook
-      branch: main
-    source_dir: /client
-    build_command: npm run build
-    routes:
-      - path: /build
-        type: rewrite
-        destination: /build/index.html
-
-  - name: backend-service
-    github:
-      repo: https://github.com/Ayden-Owens/What_To_Cook
-      branch: main
-    source_dir: /server
-    build_command: npm install
-    run_command: npm start
+  - name: client
+    command: npm run build
+    environment_slug: node-js
     instance_count: 1
-    routes:
-      - path: /routes
+  - name: server
+    command: npm start
+    environment_slug: node-js
+    instance_count: 1
