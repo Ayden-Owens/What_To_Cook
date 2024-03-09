@@ -1,0 +1,10 @@
+services:
+  - name: server
+    type: web
+    buildCommand: npm install
+    startCommand: npm start
+    env: .env  
+
+  - name: client
+    type: web
+    buildCommand: npm install && npm run build 
