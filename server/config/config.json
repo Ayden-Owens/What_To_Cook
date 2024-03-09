@@ -14,6 +14,10 @@
     "dialect": "mysql"
   },
   "production": {
+    "username": "doadmin",
+    "password": "AVNS_gloHveEl9BBeE3ITrte ",
+    "database": "defaultdb",
+    "host": "db-mysql-nyc3-30445-do-user-16001364-0.c.db.ondigitalocean.com",
     "dialect": "mysql"
   }
 }
